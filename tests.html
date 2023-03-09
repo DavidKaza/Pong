@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      const canvas = document.createElement("canvas");
+      canvas.height = 400;
+      canvas.width = 600;
+      const ctx = canvas.getContext("2d");
+      document.body.append(canvas);
+      let collisionPoint;
+      let collision;
+      let ball = {
+        pos: { x: canvas.width / 2, y: canvas.height / 2 },
+        vel: { x: 5, y: 0 },
+        radius: 20,
+        speed:5,
+        
+        get len(){
+          return Math.sqrt(ball.vel.x * ball.vel.x + ball.vel.y * ball.vel.y);
+        },
+        set len(value) {
+          let fact = value / ball.len;
+          ball.vel.x *= fact;
+          ball.vel.y *= fact;
+          ball.speed = value;
+        },
+        update() {
+          if (
+            ball.pos.x + ball.radius > canvas.width ||
+            ball.pos.x - ball.radius < 0
+          ) {
+            if(ball.pos.x + ball.radius > canvas.width){
+              clip = ball.pos.x + ball.radius - canvas.width;
+              ball.pos.x -= clip;
+            }
+            if(ball.pos.x - ball.radius < 0){
+              clip = ball.pos.x - ball.radius;
+              ball.pos.x -= clip;
+            }
+            ball.vel.x = -ball.vel.x;
+          }
+          if (
+            ball.pos.y + ball.radius > canvas.height ||
+            ball.pos.y - ball.radius < 0
+          ) {
+            if(ball.pos.y + ball.radius > canvas.height){
+              clip = ball.pos.y + ball.radius - canvas.height;
+              ball.pos.y -= clip;
+            }
+            if(ball.pos.y - ball.radius < 0){
+              clip = ball.pos.y - ball.radius;
+              ball.pos.y -= clip;
+            }
+            ball.vel.y = -ball.vel.y;
+          }
+          if(collision == true) {
+            collisionPoint = (ball.pos.y - (paddle.pos.y + paddle.size.y / 2)) / (paddle.size.y / 2);
+            ball.vel.x = Math.cos(Math.PI / 4 * collisionPoint);
+            ball.vel.y = Math.sin(Math.PI / 4 * collisionPoint);
+            ball.len = ball.speed;
+            if(ball.pos.x < paddle.pos.x) ball.vel.x = -ball.vel.x;
+            if(ball.speed < 20) ball.speed *= 1.1;
+          }
+          ball.pos.x += ball.vel.x;
+          ball.pos.y += ball.vel.y;
+          ball.draw();
+        },
+        draw() {
+          ctx.fillStyle = '#49F';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = "#9f0";
+          ctx.beginPath();
+          ctx.arc(ball.pos.x, ball.pos.y, ball.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.closePath();
+        }
+      };
+      let paddle = {
+        size:{x:20, y:100},
+        pos:{x:30, y:0},
+        draw() {
+          ctx.fillRect(paddle.pos.x, paddle.pos.y, paddle.size.x, paddle.size.y);
+        }
+      }
+      function collisionDetect(paddle, ball) {
+        if(ball.pos.x - ball.radius < paddle.pos.x + paddle.size.x && ball.pos.x + ball.radius > paddle.pos.x && ball.pos.y + ball.radius > paddle.pos.y && ball.pos.y - ball.radius < paddle.pos.y + paddle.size.y){
+          collision = true;
+        }else{
+          collision = false;
+        }
+      }
+      function refresh() {
+        ball.update();
+        paddle.draw();
+        collisionDetect(paddle, ball);
+        requestAnimationFrame(refresh);
+      }
+      canvas.addEventListener('mousemove', (e) => {
+        paddle.pos.y = e.offsetY - paddle.size.y/2;
+        paddle.pos.x = e.offsetX - paddle.size.x/2;
+      })
+      refresh();
+    </script>
+  </body>
+</html>
